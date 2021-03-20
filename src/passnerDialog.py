@@ -6,6 +6,7 @@ class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
         MainWindow.resize(390, 333)
+        MainWindow.setFixedSize(390, 333)
         self.centralwidget = QtWidgets.QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
         self.label = QtWidgets.QLabel(self.centralwidget)
@@ -46,7 +47,8 @@ class Ui_MainWindow(object):
         item = QtWidgets.QTableWidgetItem()
         self.tableWidget.setHorizontalHeaderItem(2, item)
         self.gridLayout.addWidget(self.tableWidget, 1, 0, 1, 3)
-        MainWindow.setCentralWidget(self.centralwidget)
+
+        self.btns = [self.connectBtn, self.addBtn, self.editBtn, self.deleteBtn]
 
         self.retranslateUi(MainWindow)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
@@ -54,11 +56,15 @@ class Ui_MainWindow(object):
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
         MainWindow.setWindowTitle(_translate("MainWindow", "Passner 0.0.1"))
+
         self.label.setText(_translate("MainWindow", "Ingresa tu clave maestra para acceder"))
         self.editBtn.setText(_translate("MainWindow", "Editar"))
         self.connectBtn.setText(_translate("MainWindow", "Conectar"))
         self.addBtn.setText(_translate("MainWindow", "Agregar"))
         self.deleteBtn.setText(_translate("MainWindow", "Eliminar"))
+
+        for btn in self.btns: btn.setAutoDefault(False)
+
         item = self.tableWidget.horizontalHeaderItem(0)
         item.setText(_translate("MainWindow", "Usuario"))
         item = self.tableWidget.horizontalHeaderItem(1)
