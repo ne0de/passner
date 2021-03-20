@@ -11,14 +11,19 @@ class PassnerApp(QDialog):
 
         self.messageInformer = QMessageBox()
         self.fileManager = PassnerFileManager()
-        self.fileManager.search()
 
         self.ui.connectBtn.clicked.connect(self.verifyKeyMaster)
     
+    def showMessage(self, msg, tittle):
+        self.messageInformer.setText(msg)
+        self.messageInformer.setIcon(QMessageBox.Critical)
+        self.messageInformer.setWindowTitle(tittle)
+        self.messageInformer.exec_()
+
     def verifyKeyMaster(self):
-        pass
-
-
+        if not self.fileManager.existDir():
+            res, msg = self.fileManager.createDir()
+            if not res: self.showMessage(str(msg), 'Error')
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
