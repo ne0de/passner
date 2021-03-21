@@ -13,7 +13,7 @@ class PassnerDatabase():
                 password text NOT NULL,
                 info text
             ); """
-        self.keyMasterTable = " CREATE TABLE IF NOT EXISTS keyMaster ( key text NOT NULL ); "
+        self.keyMasterTable = " CREATE TABLE IF NOT EXISTS keyMaster ( key text NOT NULL, ba64 NOT NULL); "
 
     def existTables(self):
         try:
@@ -23,14 +23,22 @@ class PassnerDatabase():
             return True
         except Error as e: print(e)
 
-    def existKeyMaster(self):
+    def getKeyMaster(self):
         try:
             self.cursor.execute("SELECT key FROM keyMaster")
             rows = self.cursor.fetchall()
             if len(rows) == 0: return False
-            return True
+            key = rows[0][0]
+            return [key[:87], key[87:]]
         except Error as e: print(e)
     
+    def addKeyMaster(self, key):
+        try: 
+            self.cursor.execute(f'INSERT INTO keyMaster (key) VALUES (?)', (key,))
+            self.conn.commit()
+        except Error as e:
+            print(e)
+
     def createTables(self):
         self.cursor.execute(self.mainTable)
         self.cursor.execute(self.keyMasterTable)
@@ -43,13 +51,6 @@ class PassnerDatabase():
         except Error as e:
             print(e)
             return False
-        
-    def addKeyMaster(self, key):
-        try: 
-            self.cursor.execute(f'INSERT INTO keyMaster (key) VALUES (?)', (key,))
-            self.conn.commit()
-        except Error as e:
-            print(e)
 
     def closeConnection(self): 
         if self.conn: self.conn.close()
