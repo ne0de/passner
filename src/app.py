@@ -2,12 +2,11 @@
 
 import sys, ctypes, platform, os
 from passlib.hash import pbkdf2_sha256
-from PyQt5.QtWidgets import QApplication, QDialog, QMessageBox, QInputDialog, QLineEdit
+from PyQt5.QtWidgets import QApplication, QDialog, QMessageBox, QInputDialog, QLineEdit, QTableWidgetItem, QTableView
 from PyQt5 import QtCore
 from dialog import Ui_MainWindow
 from fileManager import PassnerFileManager
 from database import PassnerDatabase
-from cryptography.fernet import Fernet 
 
 class PassnerApp(QDialog):
     def __init__(self, app):
@@ -16,16 +15,20 @@ class PassnerApp(QDialog):
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
 
-        Fernet.generate_key()
-
         self.connected = False
         self.messageInformer = QMessageBox()
         self.fileManager = PassnerFileManager()
         self.database = PassnerDatabase(self.fileManager.getDir() + '/data.db')
 
-        self.temp = dict()
-        self.ui.addBtn.clicked.connect(self.addUsername)
+        self.temp = list()
+        self.currentAccountId = None
+
         self.ui.connectBtn.clicked.connect(self.connect)
+        self.ui.addBtn.clicked.connect(self.addUsername)
+        self.ui.deleteBtn.clicked.connect(self.deleteAccount)
+
+        self.ui.tableWidget.setSelectionBehavior(QTableView.SelectRows)
+        self.ui.tableWidget.cellClicked.connect(self.selectAccount)
 
         self.verifyDirectory()
         self.verifyDatabase()
@@ -47,10 +50,6 @@ class PassnerApp(QDialog):
             if not r: return sys.exit(self.app.exec_())
             if not bool(key): return self.verifyKeyMaster()
             self.database.addKeyMaster(pbkdf2_sha256.hash(key) + str(Fernet.generate_key()))
-        else:
-            print(self.database.getKeyMaster()[0])
-            print(self.database.getKeyMaster()[1])
-            
 
     def verifyDatabase(self):
         self.database.createConnection()
@@ -71,32 +70,82 @@ class PassnerApp(QDialog):
         else:
             username, r = QInputDialog.getText(self, 'Usuario', 'Especifica el nombre de usuario')
             if not r or not bool(username): return False
-            self.temp['username'] = username
+            self.temp.append(username)
             return self.addPassword()
 
     def addPassword(self):
         password, r = QInputDialog.getText(self, 'Contraseña', 'Especifica la contraseña', echo = QLineEdit.Password)
         if not r or not bool(password): return False
-        self.temp['password'] = password
+        self.temp.append(password)
         return self.addInformation()
     
     def addInformation(self):
         text, r = QInputDialog.getText(self, 'Informacion', 'Especifica de donde proviene esta cuenta')
-        if not r or not bool(password): return False
-        self.temp['info'] = text
-        self.database.addAccount(self.temp)
+        if not r or not bool(text): return False
+
+        self.temp.append(text)
+        if self.database.addAccount(tuple(self.temp)):
+            self.showMessage('Cuenta', 'Nueva cuenta agregada correctamente', QMessageBox.Information)
+            self.temp.clear()
+            self.refreshTable()
     
+    def selectAccount(self, row): 
+        self.currentAccountId = int(self.ui.tableWidget.item(row, 0).text())
+        print(self.currentAccountId)
+
+    def refreshTable(self):
+        self.ui.tableWidget.clearContents()
+        self.ui.tableWidget.setRowCount(0)
+        self.addAccountsOnTable()
+
+    def editAccount(self):
+        if not self.connected: return False
+        if self.currentAccountId == None: return self.showMessage('Error', 'Selecciona que cuenta quieres eliminar', QMessageBox.Warning)
+
+        
+
+    def deleteAccount(self):
+        if not self.connected: return False
+        if self.currentAccountId == None: return self.showMessage('Error', 'Selecciona que cuenta quieres eliminar', QMessageBox.Warning)
+        
+        if self.database.deleteAccount(self.currentAccountId):
+            self.showMessage('Cuenta', 'Cuenta eliminada correctamente', QMessageBox.Information)
+            self.refreshTable()
+        else:  return self.showMessage('Error', 'No se pudo eliminar la cuenta', QMessageBox.Warning)
+
+
+    def addAccountsOnTable(self):
+        if not self.connected: return False
+
+        accounts = self.database.getAccounts()
+        if not accounts: return False
+
+        row = 0
+        for account in accounts:
+            column = 0
+            self.ui.tableWidget.insertRow(row)
+            for element in account:
+                cell = QTableWidgetItem(str(element))
+                self.ui.tableWidget.setItem(row, column, cell)
+                column += 1
+            row += 1
+
     def connect(self):
+        if self.connected: return self.showMessage('Error', 'Ya estas conectado', QMessageBox.Warning)
+
         self.connected = self.database.createConnection()
         key = self.database.getKeyMaster()[0]
 
         match = pbkdf2_sha256.verify(self.ui.keyInput.text(), key)
         self.ui.keyInput.setText('')
+
         if not match:
             self.connected = False
             self.database.closeConnection()
             return self.showMessage('Error', 'Clave maestra incorrecta', QMessageBox.Warning)
+
         self.showMessage('Info', 'Te has conectado correctamente', QMessageBox.Information)
+        self.addAccountsOnTable()
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
