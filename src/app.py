@@ -1,4 +1,7 @@
+#! /usr/bin/python3
+
 import sys, ctypes, platform, os
+
 from PyQt5.QtWidgets import QApplication, QDialog, QMessageBox, QInputDialog, QLineEdit
 from dialog import Ui_MainWindow
 from fileManager import PassnerFileManager
