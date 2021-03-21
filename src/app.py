@@ -3,13 +3,15 @@
 import sys, ctypes, platform, os
 
 from PyQt5.QtWidgets import QApplication, QDialog, QMessageBox, QInputDialog, QLineEdit
+from PyQt5.QtCore import QCoreApplication
 from dialog import Ui_MainWindow
 from fileManager import PassnerFileManager
 from database import PassnerDatabase
 
 class PassnerApp(QDialog):
-    def __init__(self):
+    def __init__(self, app):
         super().__init__()
+        self.app = app
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
 
@@ -35,9 +37,9 @@ class PassnerApp(QDialog):
     def verifyKeyMaster(self):
         if not self.database.existKeyMaster():
             key, r = QInputDialog.getText(self, 'Clave maestra', 'Escribe la clave maestra que usaras para la aplicación', echo = QLineEdit.Password)
-            if not r: sys.exit(app.exec_())
-            else: 
-                self.database.addKeyMaster(key)
+            if not r: return sys.exit(self.app.exec_())
+            if not bool(key): return self.verifyKeyMaster()
+            self.database.addKeyMaster(key)
         else: 
             pass
 
@@ -58,14 +60,8 @@ class PassnerApp(QDialog):
     def connect(self):
         self.verifyDirectory()
 
-def is_admin():
-    try:
-        return ctypes.windll.shell32.IsUserAnAdmin()
-    except:
-        return False
-        
 if __name__ == "__main__":
     app = QApplication(sys.argv)
-    window = PassnerApp()
+    window = PassnerApp(app)
     window.show()
     sys.exit(app.exec_())
