@@ -102,8 +102,6 @@ class PassnerApp(QDialog):
         if not self.connected: return False
         if self.currentAccountId == None: return self.showMessage('Error', 'Selecciona que cuenta quieres eliminar', QMessageBox.Warning)
 
-        
-
     def deleteAccount(self):
         if not self.connected: return False
         if self.currentAccountId == None: return self.showMessage('Error', 'Selecciona que cuenta quieres eliminar', QMessageBox.Warning)
