@@ -1,9 +1,10 @@
-import os, sys, platform
+import os, sys, platform, getpass
 
 class PassnerFileManager:
     def __init__(self):
         self.__system = platform.system()
-        self.__dirs = { 'Windows' : 'C:/Program Files/Passner', 'Linux' : '/home/User/Passner' }
+        self.__user = getpass.getuser()
+        self.__dirs = { 'Windows' : 'C:/Program Files/Passner', 'Linux' : f'/home/{self.__user}/Passner' }
         self.__cdir = self.__dirs[self.__system]
     
     def getDir(self): return self.__cdir
