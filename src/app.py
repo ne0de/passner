@@ -1,4 +1,3 @@
-#! /usr/bin/python3
 
 import sys, ctypes, platform, os
 from passlib.hash import pbkdf2_sha256
@@ -49,7 +48,12 @@ class PassnerApp(QDialog):
             key, r = QInputDialog.getText(self, 'Clave maestra', 'Escribe la clave maestra que usaras para la aplicación', echo = QLineEdit.Password)
             if not r: return sys.exit(self.app.exec_())
             if not bool(key): return self.verifyKeyMaster()
-            self.database.addKeyMaster(pbkdf2_sha256.hash(key) + str(Fernet.generate_key()))
+            keye = pbkdf2_sha256.hash(key)
+            self.database.addKeyMaster(keye)
+
+    def closeEvent(self, event):
+        self.database.closeConnection()
+        event.accept()
 
     def verifyDatabase(self):
         self.database.createConnection()

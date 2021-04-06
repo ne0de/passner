@@ -79,5 +79,5 @@ class PassnerDatabase():
             print(e)
             return False
 
-    def closeConnection(self): 
+    def closeConnection(self):
         if self.conn: self.conn.close()
