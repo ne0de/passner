@@ -61,8 +61,8 @@ class Ui_MainWindow(object):
         MainWindow.setWindowTitle(_translate("MainWindow", "Passner 0.0.1"))
 
         self.label.setText(_translate("MainWindow", "Ingresa tu clave maestra para acceder"))
-        self.editBtn.setText(_translate("MainWindow", "Editar"))
-        self.editBtn.setEnabled(False)
+        self.editBtn.setText(_translate("MainWindow", "Guardar cambios"))
+        #self.editBtn.setEnabled(False)
         self.connectBtn.setText(_translate("MainWindow", "Conectar"))
         self.addBtn.setText(_translate("MainWindow", "Agregar"))
         self.deleteBtn.setText(_translate("MainWindow", "Eliminar"))

@@ -13,7 +13,7 @@ class PassnerDatabase():
                 password text NOT NULL,
                 info text
             ); """
-        self.keyMasterTable = " CREATE TABLE IF NOT EXISTS keyMaster ( key text NOT NULL, ba64 NOT NULL); "
+        self.keyMasterTable = " CREATE TABLE IF NOT EXISTS keyMaster ( key text NOT NULL); "
 
     def existTables(self):
         try:
@@ -28,7 +28,6 @@ class PassnerDatabase():
             self.cursor.execute("SELECT * FROM main")
             r = self.cursor.fetchall()
             if len(r) == 0: return False
-            print(r)
             return r
         except Error as e: print(e)
 
@@ -37,8 +36,9 @@ class PassnerDatabase():
             self.cursor.execute("SELECT key FROM keyMaster")
             rows = self.cursor.fetchall()
             if len(rows) == 0: return False
-            key = rows[0][0]
-            return [key[:87], key[87:]]
+            print(rows[0][0])
+            return rows[0][0]
+            # old with b64 -> return [key[:87], key[87:]]
         except Error as e: print(e)
     
     def deleteAccount(self, id):

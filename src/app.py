@@ -25,6 +25,7 @@ class PassnerApp(QDialog):
         self.ui.connectBtn.clicked.connect(self.connect)
         self.ui.addBtn.clicked.connect(self.addUsername)
         self.ui.deleteBtn.clicked.connect(self.deleteAccount)
+        self.ui.editBtn.clicked.connect(self.checkChanges)
 
         self.ui.tableWidget.setSelectionBehavior(QTableView.SelectRows)
         self.ui.tableWidget.cellClicked.connect(self.selectAccount)
@@ -55,6 +56,18 @@ class PassnerApp(QDialog):
         self.database.closeConnection()
         event.accept()
 
+    def checkChanges(self):
+        if not self.connected: return self.showMessage('Error', 'No hay conexión', QMessageBox.Warning, 'Conectate con tu clave maestra')
+        originalData = self.database.getAccounts()
+        for row in range(self.ui.tableWidget.rowCount()):
+            for column in range(4):
+                if column == 0: continue
+                targetItem = self.ui.tableWidget.item(row, column)
+                if targetItem:
+                    if self.ui.tableWidget.item(row, column).text() != originalData[row][column]:
+                        pass
+                        # next update
+        
     def verifyDatabase(self):
         self.database.createConnection()
         if not self.database.existTables(): 
@@ -93,9 +106,9 @@ class PassnerApp(QDialog):
             self.temp.clear()
             self.refreshTable()
     
-    def selectAccount(self, row): 
+    def selectAccount(self, row, column): 
         self.currentAccountId = int(self.ui.tableWidget.item(row, 0).text())
-        print(self.currentAccountId)
+        self.currentCell = self.ui.tableWidget.item(row, column)
 
     def refreshTable(self):
         self.ui.tableWidget.clearContents()
@@ -115,7 +128,6 @@ class PassnerApp(QDialog):
             self.refreshTable()
         else:  return self.showMessage('Error', 'No se pudo eliminar la cuenta', QMessageBox.Warning)
 
-
     def addAccountsOnTable(self):
         if not self.connected: return False
 
@@ -128,6 +140,7 @@ class PassnerApp(QDialog):
             self.ui.tableWidget.insertRow(row)
             for element in account:
                 cell = QTableWidgetItem(str(element))
+                if(column == 0): cell.setFlags(QtCore.Qt.ItemIsEnabled)
                 self.ui.tableWidget.setItem(row, column, cell)
                 column += 1
             row += 1
@@ -136,7 +149,7 @@ class PassnerApp(QDialog):
         if self.connected: return self.showMessage('Error', 'Ya estas conectado', QMessageBox.Warning)
 
         self.connected = self.database.createConnection()
-        key = self.database.getKeyMaster()[0]
+        key = self.database.getKeyMaster()
 
         match = pbkdf2_sha256.verify(self.ui.keyInput.text(), key)
         self.ui.keyInput.setText('')
